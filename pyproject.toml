@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "rlcard"
+version = "1.0.4"
+description = "Reinforcement Learning / AI Bots in Card (Poker) Games - Blackjack, Leduc, Texas, DouDizhu, Mahjong, UNO."
+authors = ["Anshuman <amedhi@connect.ust.hk>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+numpy = ">=1.16.3"
+termcolor = "^1.1.0"
+torch = "^1.10.0"
+git-py = "^1.0.2"
+gitdb2 = "^4.0.2"
+matplotlib = "^3.5.0"
+
+[tool.poetry.dev-dependencies]
+black = "^21.11b1"
+ipython = "^7.30.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
