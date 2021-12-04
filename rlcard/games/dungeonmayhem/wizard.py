@@ -9,15 +9,9 @@ class DungeonMayhemWizard(DungeonMayhemCharacter):
     def __init__(self, np_random):
         super(DungeonMayhemWizard, self).__init__(np_random)
 
-    def new_deck(self):
+    @staticmethod
+    def _new_deck(add):
         """Generate a new deck for the game"""
-        counter = 0
-
-        def add(*args, **kwargs):
-            nonlocal counter
-            self.deck.append(DungeonMayhemCard(id=counter, *args, **kwargs))
-            counter += 1
-
         add(damage=3)  # LightningBolt(),
         add(damage=3)  # LightningBolt(),
         add(damage=3)  # LightningBolt(),
@@ -46,3 +40,8 @@ class DungeonMayhemWizard(DungeonMayhemCharacter):
         add(power=WizardStealShield)  # Charm(),
         add(power=WizardSwapHP)  # VampiricTouch(),
         add(power=WizardSwapHP)  # VampiricTouch(),
+
+    base_deck = DungeonMayhemCharacter.new_deck(_new_deck)
+    card_to_idx = base_deck[1]
+    idx_to_card = base_deck[2]
+    total_number_of_cards = base_deck[3]

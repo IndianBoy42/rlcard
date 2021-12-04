@@ -10,15 +10,7 @@ class DungeonMayhemRogue(DungeonMayhemCharacter):
     def __init__(self, np_random):
         super(DungeonMayhemRogue, self).__init__(np_random)
 
-    def new_deck(self):
-        """Generate a new deck for the game"""
-        counter = 0
-
-        def add(*args, **kwargs):
-            nonlocal counter
-            self.deck.append(DungeonMayhemCard(id=counter, *args, **kwargs))
-            counter += 1
-
+    def _new_deck(self, add):
         add(damage=3)  # AllTheThrownDaggers(),
         add(damage=3)  # AllTheThrownDaggers(),
         add(damage=3)  # AllTheThrownDaggers(),

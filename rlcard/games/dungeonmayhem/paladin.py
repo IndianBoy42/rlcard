@@ -10,15 +10,8 @@ class DungeonMayhemPaladin(DungeonMayhemCharacter):
     def __init__(self, np_random):
         super(DungeonMayhemPaladin, self).__init__(np_random)
 
-    def new_deck(self):
+    def _new_deck(self, add):
         """Generate a new deck for the game"""
-        counter = 0
-
-        def add(*args, **kwargs):
-            nonlocal counter
-            self.deck.append(DungeonMayhemCard(id=counter, *args, **kwargs))
-            counter += 1
-
         add(damage=3)  # ForTheMostJustice(),
         add(damage=3)  # ForTheMostJustice(),
         add(damage=2)  ## ForEvenMoreJustice(),

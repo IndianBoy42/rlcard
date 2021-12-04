@@ -2,6 +2,8 @@ from rlcard.games.dungeonmayhem.card import DungeonMayhemCard as Card
 
 
 class DungeonMayhemCharacter:
+    ID = -1
+
     def __init__(self, np_random):
         self.np_random = np_random
         self.hand: list[Card] = []
@@ -11,6 +13,27 @@ class DungeonMayhemCharacter:
         self.shields: list[tuple[int, Card]] = []
         self.immune = 0
         self.actions = 0
+
+    def _new_deck(self, add):
+        raise NotImplementedError
+
+    @staticmethod
+    def new_deck(_new_deck):
+        deck = []
+        counter = 0
+
+        def add(*args, **kwargs):
+            nonlocal counter
+            deck.append(Card(id=counter, *args, **kwargs))
+            counter += 1
+
+        _new_deck(add)
+
+        card_to_idx = {card: i for i, card in enumerate(deck)}
+        idx_to_card = {i: card for i, card in enumerate(deck)}
+        total_number_of_cards = counter
+
+        return (deck, card_to_idx, idx_to_card, total_number_of_cards)
 
     def start_turn(self):
         self.actions = 1
