@@ -4,11 +4,7 @@ from typing import Any
 import numpy as np
 
 from rlcard.games.dungeonmayhem import (Barbarian, DungeonMayhemClasses,
-                                        DungeonMayhemIDBarbarian,
-                                        DungeonMayhemIDPaladin,
-                                        DungeonMayhemIDRogue,
-                                        DungeonMayhemIDWizard, Paladin, Rogue,
-                                        Wizard)
+                                        Paladin, Rogue, Wizard)
 from rlcard.games.dungeonmayhem.card import DungeonMayhemCard
 from rlcard.games.dungeonmayhem.char import DungeonMayhemCharacter
 
@@ -33,6 +29,10 @@ class DungeonMayhemGame:
         self.rogue = Rogue(self.np_random)
         self.players = [char(self.np_random) for char in DungeonMayhemClasses]
         self.losers = []
+        for char in self.players:
+            char.draw_n(3)
+        self.current_player().start_turn()
+        return (self.current_player_state(), self.current_player_idx)
 
     def play_card(self, char: DungeonMayhemCharacter, card: DungeonMayhemCard):
         target = max(self.players, key=lambda x: self.target_heuristic(char, x))
@@ -40,8 +40,7 @@ class DungeonMayhemGame:
         char.immune += card.immune
         char.actions += card.actions
         char.heal(card.health)
-        for _ in range(card.draw):
-            char.draw()
+        char.draw_n(card.draw)
         if card.damage:
             target.take_damage(card.damage)
         if card.damage_everyone:
@@ -70,6 +69,10 @@ class DungeonMayhemGame:
     def current_player(self):
         """Return the current player"""
         return self.players[self.current_player_idx]
+
+    def current_player_state(self):
+        """Return the state of the current player"""
+        return self.get_state(self.current_player_idx)
 
     def save_state(self, append_history=True):
         """
@@ -103,17 +106,16 @@ class DungeonMayhemGame:
         char.hand.remove(card)
         self.play_card(char, card)
 
-        if char.actions > 0:  # Continue turn next
-            return (char, self.current_player_idx)
-        elif char.actions == 0:  # End of turn
-            while True:
+        if char.actions == 0:  # End of turn
+            for _ in range(len(self.players)):
                 self.current_player_idx = (
                     self.current_player_idx + 1
-                ) % self.num_players()
+                ) % self.get_num_players()
                 char = self.current_player()
                 if char.health > 0:
                     char.start_turn()
-                    return (char, self.current_player_idx)
+                    break
+        return (self.current_player_state(), self.current_player_idx)
 
     def step_back(self):
         """Return to the previous state of the game
@@ -134,20 +136,29 @@ class DungeonMayhemGame:
         return False
 
     NUM_PLAYERS = len(DungeonMayhemClasses)
+    NUM_ACTIONS = max(char.total_number_of_cards for char in DungeonMayhemClasses)
 
-    def num_players(self):
+    def get_num_players(self):
         """Return the number of players"""
         return DungeonMayhemGame.NUM_PLAYERS
+
+    def get_num_actions(self):
+        """Return the number of actions"""
+        return DungeonMayhemGame.NUM_ACTIONS
 
     def winner(self):
         """Return the winner of the game"""
         # Find the only player in self.players that is not in self.losers
-        if len(self.losers) != 3:
+        if len(self.losers) != DungeonMayhemGame.NUM_PLAYERS - 1:
             return None
         return next(
             (player for player in self.players if player not in self.losers),
             None,
         )
+
+    def is_over(self):
+        """Check if the game is over"""
+        return len(self.losers) == DungeonMayhemGame.NUM_PLAYERS - 1
 
     def get_state(self, player_id):
         """Return the stat of the player[player_id]"""
@@ -159,7 +170,8 @@ class DungeonMayhemGame:
             "hand": char.hand,
             "discardpile": char.discardpile,
             "shields": char.shields,
-            "others_healths": [
+            "deck": char.deck,
+            "others_health": [
                 player.health for player in self.players if player != char
             ],
             "others_immune": [
@@ -168,13 +180,13 @@ class DungeonMayhemGame:
             "others_discardpile": [
                 player.discardpile for player in self.players if player != char
             ],
-            "others_classes": [
-                i for (i, player) in enumerate(self.players) if player != char
+            "others_class": [
+                player.__class__.ID for player in self.players if player != char
             ],
             "others_shields": [
                 player.shields for player in self.players if player != char
             ],
-            "num_players": self.num_players(),
+            "num_players": self.get_num_players(),
             "current_player_idx": self.current_player_idx,
         }
         return state

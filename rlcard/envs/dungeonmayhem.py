@@ -1,26 +1,21 @@
-from collections import Counter, OrderedDict
 from itertools import count
 
 import numpy as np
 
 from rlcard.envs import Env
-from rlcard.games.dungeonmayhem import (DungeonMayhemClasses,
-                                        DungeonMayhemIDBarbarian,
-                                        DungeonMayhemIDPaladin,
-                                        DungeonMayhemIDRogue,
-                                        DungeonMayhemIDWizard, Game)
-from rlcard.games.dungeonmayhem.char import DungeonMayhemCharacter
+from rlcard.games.dungeonmayhem import DungeonMayhemClasses
 from rlcard.games.dungeonmayhem.game import DungeonMayhemGame
 
 counter = count()
 state_health_idx = next(counter)
+state_shield_idx = next(counter)
 state_immune_idx = next(counter)
 state_actions_idx = next(counter)
 NUM_PLAYERS = DungeonMayhemGame.NUM_PLAYERS
-state_other_health_idx = [next(counter) for _ in range(NUM_PLAYERS - 1)]
-state_other_immune_idx = [next(counter) for _ in range(NUM_PLAYERS - 1)]
-state_other_immune_idx = [next(counter) for _ in range(NUM_PLAYERS - 1)]
-state_other_class_idx = [next(counter) for _ in range(NUM_PLAYERS - 1)]
+state_others_health_idx = [next(counter) for _ in range(NUM_PLAYERS - 1)]
+state_others_shield_idx = [next(counter) for _ in range(NUM_PLAYERS - 1)]
+state_others_immune_idx = [next(counter) for _ in range(NUM_PLAYERS - 1)]
+state_others_class_idx = [next(counter) for _ in range(NUM_PLAYERS - 1)]
 state_total_indices = next(counter)
 
 counter = count()
@@ -37,13 +32,13 @@ class DungeonMayhemEnv(Env):
 
     def __init__(self, config):
         self.name = "dungeonmayhem"
-        self.game = Game()
+        self.game = DungeonMayhemGame()
         super(DungeonMayhemEnv, self).__init__(config)
         self.state_shape = [
             (state_total_indices + char_class.total_number_of_cards,)
             for char_class in DungeonMayhemClasses
         ]
-        action_shape = [None for _ in DungeonMayhemClasses]
+        self.action_shape = [None for _ in DungeonMayhemClasses]
 
     def _extract_state(self, state):
         """Encode state
@@ -60,30 +55,46 @@ class DungeonMayhemEnv(Env):
             each of these are np arrays
         """
         obs = np.zeros(self.state_shape[state_health_idx], dtype=int)
+
+        # Information about the current player
         obs[state_health_idx] = state["health"]
+        obs[state_shield_idx] = sum(shield[0] for shield in state["shields"])
         obs[state_immune_idx] = state["immune"]
         obs[state_actions_idx] = state["actions"]
+        print('state["hand"]', len(state["hand"]), state["hand"], end="\n\n")
         for card in state["hand"]:
             obs[card.id] = state_in_hand_idx
-        for card in state["discard"]:
+        print('state["discardpile"]', state["discardpile"], end="\n\n")
+        for card in state["discardpile"]:
             obs[card.id] = state_in_discard_idx
-        # for card in state["deck"]:
-        #     obs[card.id] = state_in_deck_idx
+        print('state["shields"]', state["shields"], end="\n\n")
         for card in state["shields"]:
             obs[card.id] = state_in_shields_idx
+        print('state["deck"]', state["deck"], end="\n\n")
+        for card in state["deck"]:
+            obs[card.id] = state_in_deck_idx
+
+        # Information about other players
         for j in range(DungeonMayhemGame.NUM_PLAYERS - 1):
-            i = state["other_classes"][j]
-            obs[state_other_health_idx[i]] = state["other_health"][i]
-            obs[state_other_immune_idx[i]] = state["other_immune"][i]
-            obs[state_other_class_idx[i]] = state["other_class"][i]
+            i = state["others_class"][j]
+            obs[state_others_health_idx[j]] = state["others_health"][j]
+            obs[state_others_shield_idx[j]] = sum(
+                shield[0] for shield in state["others_shields"][j]
+            )
+            obs[state_others_immune_idx[j]] = state["others_immune"][j]
+            obs[state_others_class_idx[j]] = i
             # TODO: encode other players discard pile and shields
 
         ## TODO: shouldn't this be extracted from state parameter not from self.game? idk
         extracted_state["legal_actions"] = self._get_legal_actions()
 
         extracted_state["raw_obs"] = state
-        extracted_state["raw_legal_actions"] = [a for a in state["legal_actions"]]
+        extracted_state["raw_legal_actions"] = [
+            a for a in extracted_state["legal_actions"]
+        ]
         extracted_state["action_record"] = self.action_recorder
+
+        return extracted_state
 
     def _decode_action(self, action_id):
         """Action id -> the action in the game. Must be implemented in the child class.
@@ -108,9 +119,17 @@ class DungeonMayhemEnv(Env):
         Returns:
             legal_actions (list): a list of legal actions' id
         """
+        # Should this be from the state dictionary? in self.extract_state?
         # Get the IDs of the cards in the current player's hand
         char = self.game.current_player()
         return [card.id for card in char.hand]
+
+    def get_player_id(self):
+        """Get the id of the current player
+        Returns:
+            player_id (int): the id of the current player
+        """
+        return self.game.current_player_idx
 
     # def get_perfect_information(self):
     #     """Get the perfect information of the current state

@@ -12,7 +12,9 @@ class DungeonMayhemCharacter:
         self.health = 10
         self.shields: list[tuple[int, Card]] = []
         self.immune = 0
-        self.actions = 0
+        self.actions = 1
+        self.idx_to_card: dict[int, Card] = {}
+        self.card_to_idx: dict[Card, int] = {}
 
     def _new_deck(self, add):
         raise NotImplementedError
@@ -41,7 +43,14 @@ class DungeonMayhemCharacter:
         self.draw()
 
     def total_health(self):
-        return self.health + sum([shield[0] for shield in self.shields])
+        return self.health + self.total_shields()
+
+    def total_shields(self):
+        return sum(shield[0] for shield in self.shields)
+
+    def draw_n(self, n):
+        for _ in range(n):
+            self.draw()
 
     def draw(self):
         if len(self.deck) == 0:
@@ -75,7 +84,7 @@ class DungeonMayhemCharacter:
             else:
                 amt -= remaining
                 self.shields[i] = (0, card)
-        while True:
+        while len(self.shields) > 0:
             if self.shields[0][0] == 0:
                 self.shields.pop(0)
                 self.discardpile.append(self.shields[0][1])
