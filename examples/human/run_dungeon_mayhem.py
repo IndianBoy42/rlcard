@@ -7,9 +7,14 @@ from rlcard.agents.human_agents.dungeonmayhem_human_agent import (
 from rlcard.utils import set_seed, tournament
 
 env = rlcard.make("dungeon-mayhem", config={"allow_step_back": False})
-human_agent: Any = HumanAgent(env.num_actions)
-opponents = [RandomAgent(env.num_actions) for _ in range(3)]
-env.set_agents([human_agent] + opponents)
+
+if False:
+    human_agent: Any = HumanAgent(env.num_actions)
+    opponents = [RandomAgent(env.num_actions) for _ in range(3)]
+    env.set_agents([human_agent] + opponents)
+else:
+    opponents = [RandomAgent(env.num_actions) for _ in range(4)]
+    env.set_agents(opponents)
 
 print(">> Dungeon Mayhem : Player vs Random Agents")
 
@@ -26,7 +31,7 @@ while True:
     state = final_state["raw_obs"]
     _action_list = []
     for i in range(1, len(action_record) + 1):
-        if action_record[-i][0] == state["current_player"]:
+        if action_record[-i][0] == state["current_player_idx"]:
             break
         _action_list.insert(0, action_record[-i])
     for pair in _action_list:

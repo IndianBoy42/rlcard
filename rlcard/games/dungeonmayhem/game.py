@@ -34,9 +34,12 @@ class DungeonMayhemGame:
         self.current_player().start_turn()
         return (self.current_player_state(), self.current_player_idx)
 
-    def play_card(self, char: DungeonMayhemCharacter, card: DungeonMayhemCard):
-        target = max(self.players, key=lambda x: self.target_heuristic(char, x))
-        char.actions -= 1
+    def play_card(
+        self, char: DungeonMayhemCharacter, card: DungeonMayhemCard, decr_actions=True
+    ):
+        target = self.target(char)
+        if decr_actions:
+            char.actions -= 1
         char.immune += card.immune
         char.actions += card.actions
         char.heal(card.health)
@@ -46,6 +49,8 @@ class DungeonMayhemGame:
         if card.damage_everyone:
             for player in self.players:
                 player.take_damage(card.damage_everyone)
+                # if player.health <= 0 and player not in self.losers:
+                #     self.losers.append(player)
         if card.power:
             card.power(self, char, target)
         if card.shield:
@@ -53,8 +58,19 @@ class DungeonMayhemGame:
         else:
             char.discardpile.append(card)
 
-        if target.health <= 0 and target not in self.losers:
-            self.losers.append(target)
+        # if target.health <= 0 and target not in self.losers:
+        #     self.losers.append(target)
+        for player in self.players:
+            if player.health <= 0 and player not in self.losers:
+                self.losers.append(player)
+        if any(
+            (player.health <= 0 and player not in self.losers)
+            for player in self.players
+        ):
+            raise ValueError("All players are dead, but not in losers why")
+
+        if len(char.hand) == 0:
+            char.draw_n(2)
 
     def target_heuristic(
         self, char: DungeonMayhemCharacter, target: DungeonMayhemCharacter
@@ -62,9 +78,17 @@ class DungeonMayhemGame:
         """
         Heuristic for choosing a target.
         """
+        if char == target:
+            return -10000
         health = target.total_health()
         return health  # Maximum health player
         # return -health if health != 0 else -10000  # Minimum health player, but don't target dead players
+
+    def target(self, char: DungeonMayhemCharacter):
+        """
+        Which player to target by `char`
+        """
+        return max(self.players, key=lambda x: self.target_heuristic(char, x))
 
     def current_player(self):
         """Return the current player"""
@@ -103,6 +127,8 @@ class DungeonMayhemGame:
         char = self.current_player()
 
         card = char.idx_to_card[action]
+        # print("dungeonmayhem/game.py: ", char.hand)
+        # print("dungeonmayhem/game.py: ", card)
         char.hand.remove(card)
         self.play_card(char, card)
 
@@ -115,6 +141,9 @@ class DungeonMayhemGame:
                 if char.health > 0:
                     char.start_turn()
                     break
+        elif char.actions < 0:
+            raise ValueError("Player has negative actions")
+
         return (self.current_player_state(), self.current_player_idx)
 
     def step_back(self):
@@ -149,16 +178,15 @@ class DungeonMayhemGame:
     def winner(self):
         """Return the winner of the game"""
         # Find the only player in self.players that is not in self.losers
-        if len(self.losers) != DungeonMayhemGame.NUM_PLAYERS - 1:
-            return None
-        return next(
-            (player for player in self.players if player not in self.losers),
-            None,
-        )
+        if self.is_over():
+            return next(
+                (player for player in self.players if player not in self.losers),
+                None,
+            )
 
     def is_over(self):
         """Check if the game is over"""
-        return len(self.losers) == DungeonMayhemGame.NUM_PLAYERS - 1
+        return len(self.losers) >= DungeonMayhemGame.NUM_PLAYERS - 1
 
     def get_state(self, player_id):
         """Return the stat of the player[player_id]"""
@@ -171,6 +199,10 @@ class DungeonMayhemGame:
             "discardpile": char.discardpile,
             "shields": char.shields,
             "deck": char.deck,
+            "target": self.target(char).__class__.ID,
+            # "legal_actions": {card.id: None for card in char.hand},
+            # "legal_actions": {i: card.id for (i, card) in enumerate(char.hand)},
+            "legal_actions": [card.id for (i, card) in enumerate(char.hand)],
             "others_health": [
                 player.health for player in self.players if player != char
             ],

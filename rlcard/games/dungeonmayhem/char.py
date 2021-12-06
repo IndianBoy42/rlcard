@@ -84,12 +84,10 @@ class DungeonMayhemCharacter:
             else:
                 amt -= remaining
                 self.shields[i] = (0, card)
-        while len(self.shields) > 0:
-            if self.shields[0][0] == 0:
-                self.shields.pop(0)
-                self.discardpile.append(self.shields[0][1])
-            else:
-                break
+
+        destroyed = [shield for shield in self.shields if shield[0] == 0]
+        self.discardpile.extend(shield[1] for shield in destroyed)
+        self.shields = [shield for shield in self.shields if shield[0] > 0]
 
         self.health -= amt
         if self.health <= 0:

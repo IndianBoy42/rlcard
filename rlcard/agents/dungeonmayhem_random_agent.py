@@ -1,5 +1,8 @@
 import numpy as np
 
+from rlcard.agents.human_agents.dungeonmayhem_human_agent import (_print_state,
+                                                                  print_card)
+
 
 class RandomAgent(object):
     """A random agent. Random agents is for running toy examples on the card games"""
@@ -23,7 +26,18 @@ class RandomAgent(object):
         Returns:
             action (int): The action predicted (randomly chosen) by the random agent
         """
-        return np.random.choice(state["legal_actions"])
+        # card = np.random.choice(state["legal_actions"])
+        card = np.random.choice(list(range(len(state["legal_actions"]))))
+        if False:
+            _print_state(
+                state["raw_obs"], state["action_record"], state["legal_actions"]
+            )
+            print_card(
+                0,
+                state["raw_obs"]["hand"][card],
+                prefix=f"{state['raw_obs']['current_player_idx']} Played",
+            )
+        return state["legal_actions"][card]
 
     def eval_step(self, state):
         """Predict the action given the current state for evaluation.

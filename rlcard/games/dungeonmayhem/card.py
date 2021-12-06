@@ -31,6 +31,8 @@ class DungeonMayhemCard:
 # DestroyShield
 def DestroyShield(game: Any, player: Any, target: Any):
     # Destroy the shield with most remaining value
+    if len(target.shields) == 0:
+        return
     index = max(range(0, len(target.shields)), key=lambda i: target.shields[i][0])
     target.destroy_shield(index)
 
@@ -44,8 +46,14 @@ def PaladinDestroyShields(game: Any, player: Any, target: Any):
 
 # RogueStealDiscard
 def RogueStealDiscard(game: Any, player: Any, target: Any):
-    card = target.discardpile.pop()
-    game.play_card(rogue, card)
+    return  # TODO: requires some changes to the state
+    try:
+        card = target.discardpile.pop()
+        player.hand.append(card)
+        game.play_card(player, card, decr_actions=False)
+    except IndexError as e:
+        # Just waste your turn lol
+        pass
 
 
 # PaladinGetDiscard
@@ -78,7 +86,11 @@ def WizardStealShield(
     wizard: Any,
     target: Any,
 ):
-    shield = target.shields.pop()
+    return  # TODO: requires some changes to the state
+    if len(target.shields) == 0:
+        return
+    print(target.shields)
+    shield = max(target.shields, key=lambda shield: shield[0])
     wizard.shields.append(shield)
 
 

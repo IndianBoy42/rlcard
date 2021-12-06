@@ -22,7 +22,7 @@ counter = count()
 state_in_hand_idx = next(counter)
 state_in_discard_idx = next(counter)
 state_in_deck_idx = next(counter)
-state_in_shields_idx = next(counter)
+state_in_shields_idx = [next(counter) for _ in range(3)]
 
 
 class DungeonMayhemEnv(Env):
@@ -61,16 +61,16 @@ class DungeonMayhemEnv(Env):
         obs[state_shield_idx] = sum(shield[0] for shield in state["shields"])
         obs[state_immune_idx] = state["immune"]
         obs[state_actions_idx] = state["actions"]
-        print('state["hand"]', len(state["hand"]), state["hand"], end="\n\n")
+        # print('state["hand"]', len(state["hand"]), state["hand"], end="\n\n")
         for card in state["hand"]:
             obs[card.id] = state_in_hand_idx
-        print('state["discardpile"]', state["discardpile"], end="\n\n")
+        # print('state["discardpile"]', state["discardpile"], end="\n\n")
         for card in state["discardpile"]:
             obs[card.id] = state_in_discard_idx
-        print('state["shields"]', state["shields"], end="\n\n")
-        for card in state["shields"]:
-            obs[card.id] = state_in_shields_idx
-        print('state["deck"]', state["deck"], end="\n\n")
+        # print('state["shields"]', state["shields"], end="\n\n")
+        for (remaining, card) in state["shields"]:
+            obs[card.id] = state_in_shields_idx[remaining]
+        # print('state["deck"]', state["deck"], end="\n\n")
         for card in state["deck"]:
             obs[card.id] = state_in_deck_idx
 
@@ -86,12 +86,13 @@ class DungeonMayhemEnv(Env):
             # TODO: encode other players discard pile and shields
 
         ## TODO: shouldn't this be extracted from state parameter not from self.game? idk
-        extracted_state["legal_actions"] = self._get_legal_actions()
+        extracted_state["legal_actions"] = state["legal_actions"]
+        extracted_state["raw_legal_actions"] = list(
+            i for (i, card) in enumerate(state["legal_actions"])
+        )
+        # extracted_state["raw_legal_actions"] = [ a for a in extracted_state["legal_actions"] ]
 
         extracted_state["raw_obs"] = state
-        extracted_state["raw_legal_actions"] = [
-            a for a in extracted_state["legal_actions"]
-        ]
         extracted_state["action_record"] = self.action_recorder
 
         return extracted_state
@@ -121,8 +122,8 @@ class DungeonMayhemEnv(Env):
         """
         # Should this be from the state dictionary? in self.extract_state?
         # Get the IDs of the cards in the current player's hand
-        char = self.game.current_player()
-        return [card.id for card in char.hand]
+        raise NotImplementedError
+        return {card.id: None for card in self.game.current_player().hand}
 
     def get_player_id(self):
         """Get the id of the current player
