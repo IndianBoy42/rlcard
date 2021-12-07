@@ -28,7 +28,7 @@ class RandomAgent(object):
         """
         # card = np.random.choice(state["legal_actions"])
         card = np.random.choice(list(range(len(state["legal_actions"]))))
-        if False:
+        if True:
             _print_state(
                 state["raw_obs"], state["action_record"], state["legal_actions"]
             )

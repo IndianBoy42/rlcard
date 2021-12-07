@@ -1,4 +1,10 @@
+from itertools import count
+
 from rlcard.games.dungeonmayhem.card import DungeonMayhemCard as Card
+
+_all_cards_counter = count()
+_card_to_idx = {}
+_idx_to_card = {}
 
 
 class DungeonMayhemCharacter:
@@ -17,25 +23,25 @@ class DungeonMayhemCharacter:
         self.card_to_idx: dict[Card, int] = {}
 
     def _new_deck(self, add):
-        raise NotImplementedError
+        raise NotImplementedError("Must override from subclass")
 
     @staticmethod
     def new_deck(_new_deck):
         deck = []
-        counter = 0
 
         def add(*args, **kwargs):
-            nonlocal counter
-            deck.append(Card(id=counter, *args, **kwargs))
-            counter += 1
+            deck.append(Card(id=next(_all_cards_counter), *args, **kwargs))
 
         _new_deck(add)
 
-        card_to_idx = {card: i for i, card in enumerate(deck)}
-        idx_to_card = {i: card for i, card in enumerate(deck)}
-        total_number_of_cards = counter
+        card_to_idx = {card: card.id for card in deck}
+        _card_to_idx.update(card_to_idx)
+        idx_to_card = {card.id: card for card in deck}
+        _idx_to_card.update(idx_to_card)
 
-        return (deck, card_to_idx, idx_to_card, total_number_of_cards)
+        total_number_of_cards = len(deck)
+
+        return (deck, _card_to_idx, _idx_to_card, total_number_of_cards)
 
     def start_turn(self):
         self.actions = 1

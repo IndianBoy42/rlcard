@@ -46,7 +46,6 @@ def PaladinDestroyShields(game: Any, player: Any, target: Any):
 
 # RogueStealDiscard
 def RogueStealDiscard(game: Any, player: Any, target: Any):
-    return  # TODO: requires some changes to the state
     try:
         card = target.discardpile.pop()
         player.hand.append(card)
@@ -58,8 +57,13 @@ def RogueStealDiscard(game: Any, player: Any, target: Any):
 
 # PaladinGetDiscard
 def PaladinGetDiscard(game: Any, player: Any, target: Any):
-    # TODO: heuristic or card value table?
-    pass
+    pick = 0  # TODO: heuristic or card value table?
+    try:
+        card = player.discardpile.pop(pick)
+        player.hand.append(card)
+    except IndexError as e:
+        # Just waste your turn lol
+        pass
 
 
 # BarbarianDiscardHand
@@ -86,10 +90,8 @@ def WizardStealShield(
     wizard: Any,
     target: Any,
 ):
-    return  # TODO: requires some changes to the state
     if len(target.shields) == 0:
         return
-    print(target.shields)
     shield = max(target.shields, key=lambda shield: shield[0])
     wizard.shields.append(shield)
 

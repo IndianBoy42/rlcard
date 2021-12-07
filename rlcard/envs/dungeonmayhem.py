@@ -22,7 +22,13 @@ counter = count()
 state_in_hand_idx = next(counter)
 state_in_discard_idx = next(counter)
 state_in_deck_idx = next(counter)
-state_in_shields_idx = [next(counter) for _ in range(3)]
+state_in_shields_idx = [
+    next(counter) for _ in range(3)
+]  # The sub things are how much remaining shield each card has
+state_in_others_discard_idx = [next(counter) for _ in range(NUM_PLAYERS - 1)]
+state_in_others_shield_idx = [
+    [next(counter) for _ in range(3)] for _ in range(NUM_PLAYERS - 1)
+]  # The sub things are how much remaining shield each card has
 
 
 class DungeonMayhemEnv(Env):
@@ -34,8 +40,11 @@ class DungeonMayhemEnv(Env):
         self.name = "dungeonmayhem"
         self.game = DungeonMayhemGame()
         super(DungeonMayhemEnv, self).__init__(config)
+        total_number_of_cards = sum(
+            char.total_number_of_cards for char in DungeonMayhemClasses
+        )
         self.state_shape = [
-            (state_total_indices + char_class.total_number_of_cards,)
+            (state_total_indices + total_number_of_cards,)
             for char_class in DungeonMayhemClasses
         ]
         self.action_shape = [None for _ in DungeonMayhemClasses]
@@ -84,6 +93,10 @@ class DungeonMayhemEnv(Env):
             obs[state_others_immune_idx[j]] = state["others_immune"][j]
             obs[state_others_class_idx[j]] = i
             # TODO: encode other players discard pile and shields
+            for card in state["others_discardpile"][j]:
+                obs[card.id] = state_in_others_discard_idx[j]
+            for (remaining, card) in state["others_shields"][j]:
+                obs[card.id] = state_in_others_shield_idx[j][remaining]
 
         ## TODO: shouldn't this be extracted from state parameter not from self.game? idk
         extracted_state["legal_actions"] = state["legal_actions"]

@@ -165,7 +165,7 @@ class DungeonMayhemGame:
         return False
 
     NUM_PLAYERS = len(DungeonMayhemClasses)
-    NUM_ACTIONS = max(char.total_number_of_cards for char in DungeonMayhemClasses)
+    NUM_ACTIONS = sum(char.total_number_of_cards for char in DungeonMayhemClasses)
 
     def get_num_players(self):
         """Return the number of players"""
@@ -188,6 +188,19 @@ class DungeonMayhemGame:
         """Check if the game is over"""
         return len(self.losers) >= DungeonMayhemGame.NUM_PLAYERS - 1
 
+    def get_legal_actions(self, player_id):
+        """Return the legal actions"""
+        char = self.players[player_id]
+
+        def can_play(card):
+            # FIXME: may lead to no legal actions
+            if char.actions == 2 and card.actions == 2:
+                return False
+            # TODO: should we prune "useless" cards?
+            return True
+
+        return [card.id for card in char.hand if can_play(card)]
+
     def get_state(self, player_id):
         """Return the stat of the player[player_id]"""
         char = self.players[player_id]
@@ -202,13 +215,14 @@ class DungeonMayhemGame:
             "target": self.target(char).__class__.ID,
             # "legal_actions": {card.id: None for card in char.hand},
             # "legal_actions": {i: card.id for (i, card) in enumerate(char.hand)},
-            "legal_actions": [card.id for (i, card) in enumerate(char.hand)],
+            "legal_actions": self.get_legal_actions(player_id),
             "others_health": [
                 player.health for player in self.players if player != char
             ],
             "others_immune": [
                 player.immune for player in self.players if player != char
             ],
+            # TODO: Track others cards more accurately
             "others_discardpile": [
                 player.discardpile for player in self.players if player != char
             ],
