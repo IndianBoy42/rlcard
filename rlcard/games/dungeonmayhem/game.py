@@ -49,8 +49,6 @@ class DungeonMayhemGame:
         if card.damage_everyone:
             for player in self.players:
                 player.take_damage(card.damage_everyone)
-                # if player.health <= 0 and player not in self.losers:
-                #     self.losers.append(player)
         if card.power:
             card.power(self, char, target)
         if card.shield:
@@ -58,11 +56,9 @@ class DungeonMayhemGame:
         else:
             char.discardpile.append(card)
 
-        # if target.health <= 0 and target not in self.losers:
-        #     self.losers.append(target)
         for player in self.players:
             if player.health <= 0 and player not in self.losers:
-                self.losers.append(player)
+                self.losers.append(player.__class__.ID)
         if any(
             (player.health <= 0 and player not in self.losers)
             for player in self.players
@@ -107,10 +103,32 @@ class DungeonMayhemGame:
         state["barbarian"] = deepcopy(self.barbarian)
         state["paladin"] = deepcopy(self.paladin)
         state["rogue"] = deepcopy(self.rogue)
+        state["losers"] = [loser for loser in self.losers]
         state["current_player"] = self.current_player_idx
         if append_history:
             self.history.append(state)
         return state
+
+    def step_back(self):
+        """Return to the previous state of the game
+
+        Returns:
+            Status (bool): check if the step back is success or not
+        """
+        if not self.allow_step_back:
+            raise ValueError("Step back is not allowed")
+        if len(self.history) > 0:
+            state = self.history.pop()
+            (self.wizard, self.barbarian, self.paladin, self.rogue) = (
+                state["wizard"],
+                state["barbarian"],
+                state["paladin"],
+                state["rogue"],
+            )
+            self.players = [self.wizard, self.barbarian, self.paladin, self.rogue]
+            self.losers = state["losers"]
+            return True
+        return False
 
     def step(self, action):
         """
@@ -146,24 +164,6 @@ class DungeonMayhemGame:
 
         return (self.current_player_state(), self.current_player_idx)
 
-    def step_back(self):
-        """Return to the previous state of the game
-
-        Returns:
-            Status (bool): check if the step back is success or not
-        """
-        if len(self.history) > 0:
-            state = self.history.pop()
-            (self.wizard, self.barbarian, self.paladin, self.rogue) = (
-                state["wizard"],
-                state["barbarian"],
-                state["paladin"],
-                state["rogue"],
-            )
-            self.players = [self.wizard, self.barbarian, self.paladin, self.rogue]
-            return True
-        return False
-
     NUM_PLAYERS = len(DungeonMayhemClasses)
     NUM_ACTIONS = sum(char.total_number_of_cards for char in DungeonMayhemClasses)
 
@@ -180,7 +180,11 @@ class DungeonMayhemGame:
         # Find the only player in self.players that is not in self.losers
         if self.is_over():
             return next(
-                (player for player in self.players if player not in self.losers),
+                (
+                    player
+                    for player in self.players
+                    if player.__class__.ID not in self.losers
+                ),
                 None,
             )
 

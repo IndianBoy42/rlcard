@@ -1,3 +1,9 @@
+# MATH6450I
+
+I used poetry to setup the environment, so you can do `poetry install`, `poetry shell` to get into the venv
+
+then do `python examples/human/run_dungeon_mayhem.py` to try playing a game
+
 # RLCard: A Toolkit for Reinforcement Learning in Card Games
 <img width="500" src="https://dczha.com/files/rlcard/logo.jpg" alt="Logo" />
 

@@ -19,6 +19,7 @@ state_others_class_idx = [next(counter) for _ in range(NUM_PLAYERS - 1)]
 state_total_indices = next(counter)
 
 counter = count()
+state_unknown_idx = next(counter)
 state_in_hand_idx = next(counter)
 state_in_discard_idx = next(counter)
 state_in_deck_idx = next(counter)
