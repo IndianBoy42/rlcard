@@ -84,9 +84,9 @@ class DMCTrainer:
                  num_buffers=50,
                  num_threads=4,
                  max_grad_norm=40,
-                 learning_rate=0.0001,
+                 learning_rate=0.001,
                  alpha=0.99,
-                 momentum=0,
+                 momentum=0.1,
                  epsilon=0.00001):
         '''
         Deep Monte-Carlo

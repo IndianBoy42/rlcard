@@ -24,22 +24,26 @@ print(">> Dungeon Mayhem : Player vs Random Agents")
 
 
 def run_game():
-    trajectories, payoffs = env.run(is_training=False)
+    return env.run(is_training=False)
 
 
-cProfile.run("env.run(is_training=False)", "dm.stats")
-os.system("python -m flameprof dm.stats -o dm.svg")
-# Use python -m flameprof something.stats -o something.svg
-# Open svg in chrome and view
-os.system("google-chrome dm.svg")
+# cProfile.run("env.run(is_training=False)", "dm.stats")
+# os.system("python -m flameprof dm.stats -o dm.svg")
+# # Use python -m flameprof something.stats -o something.svg
+# # Open svg in chrome and view
+# os.system("google-chrome dm.svg")
+
+print(tournament(env, 1000))
+
 raise ValueError("")
+
 
 while True:
     set_seed(0)
 
     print("Start a new game")
 
-    trajectories, payoffs = env.run(is_training=False)
+    trajectories, payoffs = run_game()
     # If the human does not take the final action, we need to
     # print other players action
     final_state = trajectories[0][-1]

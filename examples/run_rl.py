@@ -59,7 +59,7 @@ def train(args):
             # Generate data from the environment
             trajectories, payoffs = env.run(is_training=True)
 
-            # Reorganaize the data to be state, action, reward, next_state, done
+            # Reorganize the data to be state, action, reward, next_state, done
             trajectories = reorganize(trajectories, payoffs)
 
             # Feed transitions into agent memory, and train the agent
@@ -87,11 +87,12 @@ def train(args):
 
 
 if __name__ == "__main__":
+    # TODO: implement loading pretrained model
     parser = argparse.ArgumentParser("DQN/NFSP example in RLCard")
     parser.add_argument(
         "--env",
         type=str,
-        default="leduc-holdem",
+        default="dungeon-mayhem-2",
         choices=[
             "blackjack",
             "leduc-holdem",
@@ -102,15 +103,16 @@ if __name__ == "__main__":
             "uno",
             "gin-rummy",
             "dungeon-mayhem",
+            "dungeon-mayhem-2",
         ],
     )
     parser.add_argument("--algorithm", type=str, default="dqn", choices=["dqn", "nfsp"])
     parser.add_argument("--cuda", type=str, default="")
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--num_episodes", type=int, default=5000)
+    parser.add_argument("--num_episodes", type=int, default=5000000)
     parser.add_argument("--num_eval_games", type=int, default=2000)
     parser.add_argument("--update_estimator_every", type=int, default=1000)
-    parser.add_argument("--evaluate_every", type=int, default=100)
+    parser.add_argument("--evaluate_every", type=int, default=1000)
     parser.add_argument(
         "--log_dir",
         type=str,  # default="experiments/leduc_holdem_dqn_result/"
