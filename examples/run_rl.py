@@ -23,13 +23,14 @@ def train(args):
     env = rlcard.make(args.env, config={"seed": args.seed})
 
     # Initialize the agent and use random agents as opponents
+    network = [512, 512, 512, 512, 512]
     if args.algorithm == "dqn":
         from rlcard.agents import DQNAgent
 
         agent = DQNAgent(
             num_actions=env.num_actions,
             state_shape=env.state_shape[0],
-            mlp_layers=[64, 64],
+            mlp_layers=network,
             device=device,
             update_target_estimator_every=args.update_estimator_every,
         )
