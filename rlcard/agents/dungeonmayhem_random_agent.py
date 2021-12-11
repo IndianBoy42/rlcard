@@ -26,17 +26,20 @@ class RandomAgent(object):
         Returns:
             action (int): The action predicted (randomly chosen) by the random agent
         """
-        # card = np.random.choice(state["legal_actions"])
-        card = np.random.choice(list(range(len(state["legal_actions"]))))
+        idx = np.random.choice(list(state["legal_actions"].keys()))
         if True:
             _print_state(
                 state["raw_obs"], state["action_record"], state["legal_actions"]
             )
             print_card(
                 0,
-                state["raw_obs"]["hand"][card],
+                next(c for c in state["raw_obs"]["hand"] if c.id == idx),
+                # state["raw_obs"]["hand"][card],
                 prefix=f"{state['raw_obs']['current_player_idx']} Played",
             )
+        return np.random.choice(list(state["legal_actions"].keys()))
+        # card = np.random.choice(state["legal_actions"])
+        card = np.random.choice(list(range(len(state["legal_actions"]))))
         return state["legal_actions"][card]
 
     def eval_step(self, state):
@@ -55,8 +58,12 @@ class RandomAgent(object):
             probs[i] = 1 / len(state["legal_actions"])
 
         info = {}
+        # info["probs"] = {
+        #     state["raw_legal_actions"][i]: probs[state["legal_actions"][i]]
+        #     for i in range(len(state["legal_actions"]))
+        # }
         info["probs"] = {
-            state["raw_legal_actions"][i]: probs[state["legal_actions"][i]]
+            state["raw_legal_actions"][i]: probs[list(state["legal_actions"].keys())[i]]
             for i in range(len(state["legal_actions"]))
         }
 

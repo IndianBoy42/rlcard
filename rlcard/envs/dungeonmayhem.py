@@ -100,12 +100,15 @@ class DungeonMayhemEnv(Env):
                 obs[card.id] = state_in_others_shield_idx[j][remaining]
 
         ## TODO: shouldn't this be extracted from state parameter not from self.game? idk
-        extracted_state["legal_actions"] = state["legal_actions"]
+        # extracted_state["legal_actions"] = state["legal_actions"]
+        extracted_state["legal_actions"] = {
+            action: None for i, action in enumerate(state["legal_actions"])
+        }
         extracted_state["raw_legal_actions"] = list(
             i for (i, card) in enumerate(state["legal_actions"])
         )
         # extracted_state["raw_legal_actions"] = [ a for a in extracted_state["legal_actions"] ]
-
+        extracted_state["obs"] = obs
         extracted_state["raw_obs"] = state
         extracted_state["action_record"] = self.action_recorder
 
@@ -127,7 +130,7 @@ class DungeonMayhemEnv(Env):
         """
         # If there is a winner he gets +1, everyone else gets -1
         winner = self.game.winner()
-        return [1 if winner == player else -1 for player in self.game.players]
+        return np.array([1 if winner == player else -1 for player in self.game.players])
 
     def _get_legal_actions(self):
         """Get all legal actions for current state

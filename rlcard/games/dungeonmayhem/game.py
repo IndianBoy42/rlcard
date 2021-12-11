@@ -60,7 +60,7 @@ class DungeonMayhemGame:
             if player.health <= 0 and player not in self.losers:
                 self.losers.append(player.__class__.ID)
         if any(
-            (player.health <= 0 and player not in self.losers)
+            (player.health <= 0 and player.__class__.ID not in self.losers)
             for player in self.players
         ):
             raise ValueError("All players are dead, but not in losers why")
@@ -198,8 +198,8 @@ class DungeonMayhemGame:
 
         def can_play(card):
             # FIXME: may lead to no legal actions
-            if char.actions == 2 and card.actions == 2:
-                return False
+            # if char.actions == 2 and card.actions == 2:
+            #     return False
             # TODO: should we prune "useless" cards?
             return True
 

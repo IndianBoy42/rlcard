@@ -55,7 +55,7 @@ def _print_state(raw_obs, action_record, legal_actions):
     for i in range(raw_obs["num_players"] - 1):
         targetted = "T" if raw_obs["target"] == raw_obs["others_class"][i] else " "
         print(
-            f"- Player {i}{targetted}   : {raw_obs['others_health'][i]:02}",
+            f"- Player {i}{targetted}   : {raw_obs['others_health'][i]:2}",
             ", ",
             raw_obs["others_immune"][i],
             ", ",
