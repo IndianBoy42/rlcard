@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
 
@@ -17,6 +17,7 @@ class DungeonMayhemGame:
         self.losers: list[DungeonMayhemCharacter] = []
         self.history: list[dict] = []
         self.current_player_idx: int = 0
+        self.target: Optional[DungeonMayhemCharacter] = None
 
     def configure(self, game_config):
         """Specifiy some game specific parameters, such as number of players"""
@@ -32,12 +33,13 @@ class DungeonMayhemGame:
         for char in self.players:
             char.draw_n(3)
         self.current_player().start_turn()
+        self.target = self.calc_target(self.current_player())
         return (self.current_player_state(), self.current_player_idx)
 
     def play_card(
         self, char: DungeonMayhemCharacter, card: DungeonMayhemCard, decr_actions=True
     ):
-        target = self.target(char)
+        target = self.target
         if decr_actions:
             char.actions -= 1
         char.immune += card.immune
@@ -80,7 +82,7 @@ class DungeonMayhemGame:
         return health  # Maximum health player
         # return -health if health != 0 else -10000  # Minimum health player, but don't target dead players
 
-    def target(self, char: DungeonMayhemCharacter):
+    def calc_target(self, char: DungeonMayhemCharacter):
         """
         Which player to target by `char`
         """
@@ -143,6 +145,7 @@ class DungeonMayhemGame:
             self.save_state(append_history=True)
 
         char = self.current_player()
+        self.target = self.calc_target(char)
 
         card = char.idx_to_card[action]
         # print("dungeonmayhem/game.py: ", char.hand)
@@ -195,15 +198,16 @@ class DungeonMayhemGame:
     def get_legal_actions(self, player_id):
         """Return the legal actions"""
         char = self.players[player_id]
-
-        def can_play(card):
-            # FIXME: may lead to no legal actions
-            # if char.actions == 2 and card.actions == 2:
-            #     return False
-            # TODO: should we prune "useless" cards?
-            return True
-
-        return [card.id for card in char.hand if can_play(card)]
+        #
+        # def can_play(card):
+        #     # FIXME: may lead to no legal actions
+        #     # if char.actions == 2 and card.actions == 2:
+        #     #     return False
+        #     # TODO: should we prune "useless" cards?
+        #     return True
+        #
+        return [card.id for card in char.hand]
+        # return [card.id for card in char.hand if can_play(card)]
 
     def get_state(self, player_id):
         """Return the stat of the player[player_id]"""
@@ -216,7 +220,7 @@ class DungeonMayhemGame:
             "discardpile": char.discardpile,
             "shields": char.shields,
             "deck": char.deck,
-            "target": self.target(char).__class__.ID,
+            "target": self.target.__class__.ID,
             # "legal_actions": {card.id: None for card in char.hand},
             # "legal_actions": {i: card.id for (i, card) in enumerate(char.hand)},
             "legal_actions": self.get_legal_actions(player_id),

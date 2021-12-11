@@ -12,10 +12,12 @@ torch = "^1.10.0"
 git-py = "^1.0.2"
 gitdb2 = "^4.0.2"
 matplotlib = "^3.5.0"
+flameprof = "^0.4"
 
 [tool.poetry.dev-dependencies]
 black = "^21.11b1"
 ipython = "^7.30.0"
+flameprof = "^0.4"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

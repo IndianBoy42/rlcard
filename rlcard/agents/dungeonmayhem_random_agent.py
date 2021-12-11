@@ -27,7 +27,7 @@ class RandomAgent(object):
             action (int): The action predicted (randomly chosen) by the random agent
         """
         idx = np.random.choice(list(state["legal_actions"].keys()))
-        if True:
+        if False:
             _print_state(
                 state["raw_obs"], state["action_record"], state["legal_actions"]
             )

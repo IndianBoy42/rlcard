@@ -1,9 +1,13 @@
+import cProfile
+import os
+import pstats
 from typing import Any
 
 import rlcard
 from rlcard.agents.dungeonmayhem_random_agent import RandomAgent
 from rlcard.agents.human_agents.dungeonmayhem_human_agent import (
     HumanAgent, _print_action)
+# from rlcard.agents.random_agent import RandomAgent
 from rlcard.utils import set_seed, tournament
 
 env = rlcard.make("dungeon-mayhem", config={"allow_step_back": False})
@@ -17,6 +21,18 @@ else:
     env.set_agents(opponents)
 
 print(">> Dungeon Mayhem : Player vs Random Agents")
+
+
+def run_game():
+    trajectories, payoffs = env.run(is_training=False)
+
+
+cProfile.run("env.run(is_training=False)", "dm.stats")
+os.system("python -m flameprof dm.stats -o dm.svg")
+# Use python -m flameprof something.stats -o something.svg
+# Open svg in chrome and view
+os.system("google-chrome dm.svg")
+raise ValueError("")
 
 while True:
     set_seed(0)
