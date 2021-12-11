@@ -7,15 +7,22 @@ from rlcard.games.dungeonmayhem import DungeonMayhemClasses
 from rlcard.games.dungeonmayhem.game import DungeonMayhemGame
 
 counter = count()
-state_health_idx = next(counter)
-state_shield_idx = next(counter)
+state_health_idx = [next(counter) for _ in range(11)]
+state_shield_idx = [next(counter) for _ in range(11)]
 state_immune_idx = next(counter)
-state_actions_idx = next(counter)
+state_actions_idx = [next(counter) for _ in range(4)]
 NUM_PLAYERS = DungeonMayhemGame.NUM_PLAYERS
-state_others_health_idx = [next(counter) for _ in range(NUM_PLAYERS - 1)]
-state_others_shield_idx = [next(counter) for _ in range(NUM_PLAYERS - 1)]
+state_others_health_idx = [
+    [next(counter) for _ in range(11)] for _ in range(NUM_PLAYERS - 1)
+]
+state_others_shield_idx = [
+    [next(counter) for _ in range(11)] for _ in range(NUM_PLAYERS - 1)
+]
 state_others_immune_idx = [next(counter) for _ in range(NUM_PLAYERS - 1)]
-state_others_class_idx = [next(counter) for _ in range(NUM_PLAYERS - 1)]
+state_others_class_idx = [
+    [next(counter) for _ in range(len(DungeonMayhemClasses))]
+    for _ in range(NUM_PLAYERS - 1)
+]
 state_total_indices = next(counter)
 
 counter = count()
@@ -30,6 +37,7 @@ state_in_others_discard_idx = [next(counter) for _ in range(NUM_PLAYERS - 1)]
 state_in_others_shield_idx = [
     [next(counter) for _ in range(3)] for _ in range(NUM_PLAYERS - 1)
 ]  # The sub things are how much remaining shield each card has
+total_card_in_indices = next(counter)
 
 
 class DungeonMayhemEnv(Env):
@@ -45,7 +53,7 @@ class DungeonMayhemEnv(Env):
             char.total_number_of_cards for char in DungeonMayhemClasses
         )
         self.state_shape = [
-            (state_total_indices + total_number_of_cards,)
+            (state_total_indices + total_number_of_cards * total_card_in_indices,)
             for char_class in DungeonMayhemClasses
         ]
         self.action_shape = [None for _ in DungeonMayhemClasses]
@@ -64,40 +72,47 @@ class DungeonMayhemEnv(Env):
             raw legal actions state['raw_legal_actions'].
             each of these are np arrays
         """
-        obs = np.zeros(self.state_shape[state_health_idx], dtype=int)
+        obs = np.zeros(self.state_shape[0], dtype=bool)
 
         # Information about the current player
-        obs[state_health_idx] = state["health"]
-        obs[state_shield_idx] = sum(shield[0] for shield in state["shields"])
+        obs[state_health_idx[state["health"]]] = 1
+        obs[state_shield_idx[sum(shield[0] for shield in state["shields"])]] = 1
         obs[state_immune_idx] = state["immune"]
-        obs[state_actions_idx] = state["actions"]
+        obs[state_actions_idx[state["actions"]]] = 1
         # print('state["hand"]', len(state["hand"]), state["hand"], end="\n\n")
         for card in state["hand"]:
-            obs[card.id] = state_in_hand_idx
+            obs[card.id * total_card_in_indices + state_in_hand_idx] = 1
         # print('state["discardpile"]', state["discardpile"], end="\n\n")
         for card in state["discardpile"]:
-            obs[card.id] = state_in_discard_idx
+            obs[card.id * total_card_in_indices + state_in_discard_idx] = 1
         # print('state["shields"]', state["shields"], end="\n\n")
         for (remaining, card) in state["shields"]:
-            obs[card.id] = state_in_shields_idx[remaining]
+            obs[card.id * total_card_in_indices + state_in_shields_idx[remaining]] = 1
         # print('state["deck"]', state["deck"], end="\n\n")
         for card in state["deck"]:
-            obs[card.id] = state_in_deck_idx
+            obs[card.id * total_card_in_indices + state_in_deck_idx] = 1
 
         # Information about other players
         for j in range(DungeonMayhemGame.NUM_PLAYERS - 1):
             i = state["others_class"][j]
-            obs[state_others_health_idx[j]] = state["others_health"][j]
-            obs[state_others_shield_idx[j]] = sum(
-                shield[0] for shield in state["others_shields"][j]
-            )
+            obs[state_others_health_idx[j][state["others_health"][j]]] = 1
+            obs[
+                state_others_shield_idx[j][
+                    sum(shield[0] for shield in state["others_shields"][j])
+                ]
+            ] = 1
             obs[state_others_immune_idx[j]] = state["others_immune"][j]
-            obs[state_others_class_idx[j]] = i
+            obs[state_others_class_idx[j][i]] = 1
             # TODO: encode other players discard pile and shields
             for card in state["others_discardpile"][j]:
-                obs[card.id] = state_in_others_discard_idx[j]
+                obs[
+                    card.id * total_card_in_indices + state_in_others_discard_idx[j]
+                ] = 1
             for (remaining, card) in state["others_shields"][j]:
-                obs[card.id] = state_in_others_shield_idx[j][remaining]
+                obs[
+                    card.id * total_card_in_indices
+                    + state_in_others_shield_idx[j][remaining]
+                ] = 1
 
         ## TODO: shouldn't this be extracted from state parameter not from self.game? idk
         # extracted_state["legal_actions"] = state["legal_actions"]

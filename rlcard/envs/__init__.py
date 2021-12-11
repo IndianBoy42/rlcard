@@ -44,3 +44,8 @@ register(
     env_id="dungeon-mayhem",
     entry_point="rlcard.envs.dungeonmayhem:DungeonMayhemEnv",
 )
+
+register(
+    env_id="dungeon-mayhem-2",
+    entry_point="rlcard.envs.dungeonmayhem:DungeonMayhemEnv",
+)
