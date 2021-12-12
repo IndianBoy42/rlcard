@@ -64,7 +64,7 @@ class DungeonMayhemEnv(Env):
             raw legal actions state['raw_legal_actions'].
             each of these are np arrays
         """
-        obs = np.zeros(self.state_shape[state_health_idx], dtype=int)
+        obs = np.zeros(self.state_shape[0], dtype=int)
 
         # Information about the current player
         obs[state_health_idx] = state["health"]
@@ -79,27 +79,25 @@ class DungeonMayhemEnv(Env):
             obs[card.id] = state_in_discard_idx
         # print('state["shields"]', state["shields"], end="\n\n")
         for (remaining, card) in state["shields"]:
-            obs[card.id] = state_in_shields_idx[remaining]
+            obs[card.id] = state_in_shields_idx[remaining - 1]
         # print('state["deck"]', state["deck"], end="\n\n")
         for card in state["deck"]:
             obs[card.id] = state_in_deck_idx
 
         # Information about other players
         for j in range(DungeonMayhemGame.NUM_PLAYERS - 1):
-            i = state["others_class"][j]
             obs[state_others_health_idx[j]] = state["others_health"][j]
             obs[state_others_shield_idx[j]] = sum(
                 shield[0] for shield in state["others_shields"][j]
             )
             obs[state_others_immune_idx[j]] = state["others_immune"][j]
-            obs[state_others_class_idx[j]] = i
+            obs[state_others_class_idx[j]] = state["others_class"][j]
             # TODO: encode other players discard pile and shields
             for card in state["others_discardpile"][j]:
                 obs[card.id] = state_in_others_discard_idx[j]
             for (remaining, card) in state["others_shields"][j]:
-                obs[card.id] = state_in_others_shield_idx[j][remaining]
+                obs[card.id] = state_in_others_shield_idx[j][remaining - 1]
 
-        ## TODO: shouldn't this be extracted from state parameter not from self.game? idk
         # extracted_state["legal_actions"] = state["legal_actions"]
         extracted_state["legal_actions"] = {
             action: None for i, action in enumerate(state["legal_actions"])
@@ -152,7 +150,7 @@ class DungeonMayhemEnv(Env):
         Returns:
             player_id (int): the id of the current player
         """
-        return self.game.current_player_idx
+        return self.game.current_player().__class__.ID
 
     # def get_perfect_information(self):
     #     """Get the perfect information of the current state

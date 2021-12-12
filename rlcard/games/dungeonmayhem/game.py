@@ -54,18 +54,18 @@ class DungeonMayhemGame:
         if card.power:
             card.power(self, char, target)
         if card.shield:
-            char.shields += [(0, card)]
+            char.shields += [(card.shield, card)]
         else:
             char.discardpile.append(card)
 
         for player in self.players:
             if player.health <= 0 and player not in self.losers:
                 self.losers.append(player.__class__.ID)
-        if any(
-            (player.health <= 0 and player.__class__.ID not in self.losers)
-            for player in self.players
-        ):
-            raise ValueError("All players are dead, but not in losers why")
+        # if any(
+        #     (player.health <= 0 and player.__class__.ID not in self.losers)
+        #     for player in self.players
+        # ):
+        #     raise ValueError("All players are dead, but not in losers why")
 
         if len(char.hand) == 0:
             char.draw_n(2)
@@ -230,7 +230,6 @@ class DungeonMayhemGame:
             "others_immune": [
                 player.immune for player in self.players if player != char
             ],
-            # TODO: Track others cards more accurately
             "others_discardpile": [
                 player.discardpile for player in self.players if player != char
             ],

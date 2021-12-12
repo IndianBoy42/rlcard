@@ -40,9 +40,10 @@ def train(args):
         agent = NFSPAgent(
             num_actions=env.num_actions,
             state_shape=env.state_shape[0],
-            hidden_layers_sizes=[64, 64],
-            q_mlp_layers=[64, 64],
+            hidden_layers_sizes=network,
+            q_mlp_layers=network,
             device=device,
+            train_every=args.update_estimator_every,
         )
     agents = [agent]
     for _ in range(env.num_players):
@@ -51,6 +52,9 @@ def train(args):
 
     # Start training
     with Logger(args.log_dir) as logger:
+        # Get the paths
+        csv_path, fig_path = logger.csv_path, logger.fig_path
+
         for episode in range(args.num_episodes):
 
             if args.algorithm == "nfsp":
@@ -74,16 +78,13 @@ def train(args):
                     env.timestep, tournament(env, args.num_eval_games)[0]
                 )
 
-        # Get the paths
-        csv_path, fig_path = logger.csv_path, logger.fig_path
+                # Plot the learning curve
+                plot_curve(csv_path, fig_path, args.algorithm)
 
-    # Plot the learning curve
-    plot_curve(csv_path, fig_path, args.algorithm)
-
-    # Save model
-    save_path = os.path.join(args.log_dir, "model.pth")
-    torch.save(agent, save_path)
-    print("Model saved in", save_path)
+                # Save model
+                save_path = os.path.join(args.log_dir, "model.pth")
+                torch.save(agent, save_path)
+                print("Model saved in", save_path)
 
 
 if __name__ == "__main__":
