@@ -4,6 +4,7 @@ from rlcard.games.dungeonmayhem.char import DungeonMayhemCharacter
 
 
 def _new_deck(add):
+    """Generate a new deck for the game"""
     add(damage=2)  #  BrutalPunch(),
     add(damage=2)  #  BrutalPunch(),
     add(actions=2)  #  TwoAxes(),
@@ -30,6 +31,7 @@ def _new_deck(add):
     add(actions=1, power=BarbarianDiscardHand)  #  BattleRoar(),
     add(draw=1, power=DestroyShield)  #  MightyToss(),
     add(draw=1, power=DestroyShield)  #  MightyToss(),
+    add(power=BarbarianHeal)  #  WhirlingAxes(),
     add(power=BarbarianHeal)  #  WhirlingAxes(),
 
 
