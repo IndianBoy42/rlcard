@@ -7,13 +7,14 @@ from typing import Any, Callable, Optional
 # from rlcard.games.dungeonmayhem.rogue import DungeonMayhemRogue
 
 
-@dataclass(frozen=True)
+@dataclass()
 class DungeonMayhemCard:
     """
     The class for a card.
     """
 
     id: int
+    owner: int = 10000
     immune: int = 0
     shield: int = 0
     damage: int = 0

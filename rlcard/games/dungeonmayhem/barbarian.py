@@ -37,12 +37,8 @@ class DungeonMayhemBarbarian(DungeonMayhemCharacter):
     """docstring for DungeonMayhemBarbarian."""
 
     def __init__(self, np_random):
-        super(DungeonMayhemBarbarian, self).__init__(np_random)
-        self.idx_to_card = DungeonMayhemBarbarian.idx_to_card
-        self.card_to_idx = DungeonMayhemBarbarian.card_to_idx
-        self.discardpile = [card for card in DungeonMayhemBarbarian.base_deck[0]]
+        super(DungeonMayhemBarbarian, self).__init__(np_random, DungeonMayhemBarbarian)
 
     base_deck = DungeonMayhemCharacter.new_deck(_new_deck)
-    card_to_idx = base_deck[1]
-    idx_to_card = base_deck[2]
-    total_number_of_cards = base_deck[3]
+    idx_to_card = base_deck[1]
+    total_number_of_cards = base_deck[2]

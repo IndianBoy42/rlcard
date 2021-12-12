@@ -3,14 +3,13 @@ from itertools import count
 from rlcard.games.dungeonmayhem.card import DungeonMayhemCard as Card
 
 _all_cards_counter = count()
-_card_to_idx = {}
 _idx_to_card = {}
 
 
 class DungeonMayhemCharacter:
     ID = -1
 
-    def __init__(self, np_random):
+    def __init__(self, np_random, SubClass):
         self.np_random = np_random
         self.hand: list[Card] = []
         self.discardpile: list[Card] = []
@@ -19,8 +18,10 @@ class DungeonMayhemCharacter:
         self.shields: list[tuple[int, Card]] = []
         self.immune = 0
         self.actions = 1
-        self.idx_to_card: dict[int, Card] = {}
-        self.card_to_idx: dict[Card, int] = {}
+        self.idx_to_card: dict[int, Card] = SubClass.idx_to_card
+        self.discardpile = [card for card in SubClass.base_deck[0]]
+        for card in self.discardpile:
+            card.owner = SubClass.ID
 
     def _new_deck(self, add):
         raise NotImplementedError("Must override from subclass")
@@ -34,14 +35,12 @@ class DungeonMayhemCharacter:
 
         _new_deck(add)
 
-        card_to_idx = {card: card.id for card in deck}
-        _card_to_idx.update(card_to_idx)
         idx_to_card = {card.id: card for card in deck}
         _idx_to_card.update(idx_to_card)
 
         total_number_of_cards = len(deck)
 
-        return (deck, _card_to_idx, _idx_to_card, total_number_of_cards)
+        return (deck, _idx_to_card, total_number_of_cards)
 
     def start_turn(self):
         self.actions = 1

@@ -56,7 +56,7 @@ class DungeonMayhemGame:
         if card.shield:
             char.shields += [(card.shield, card)]
         else:
-            char.discardpile.append(card)
+            self.players[card.owner].discardpile.append(card)
 
         for player in self.players:
             if player.health <= 0 and player not in self.losers:
